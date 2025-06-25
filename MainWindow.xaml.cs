@@ -3,7 +3,7 @@ using System.Drawing; // Bitmap
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json; // JSON 序列化/反序列化
-//using System.Threading;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -44,18 +44,15 @@ namespace D3H
         };
         // 技能快捷键
         private (Key key, ModifierKeys mod)[] skillHotkeys = Enumerable.Repeat((Key.None, ModifierKeys.None), 4).ToArray();
-        private Timer?[] timers = new Timer?[6];
+        private Timer[] timers = new Timer[6];
         private string[] modes = ["无", "无", "无", "无", "无", "无"];
         // 放技能函数
-        private TimerCallback[] callbacks = Enumerable.Range(0, 6)
-            .Select(_ => new TimerCallback(_ => { }))
-            .ToArray();
+        private TimerCallback[] callbacks = new TimerCallback[6];
         private int[] intervals = [0, 0, 0, 0, 0, 0]; // 释放间隔
 
-        private Bitmap?[] coldDownOK = new Bitmap?[6]; // 冷却转好的图片
-        private Bitmap?[] latestScreenshots = new Bitmap?[6]; // 截图缓冲区
+        private Bitmap[] coldDownOK = new Bitmap[6]; // 冷却转好的图片
+        private Bitmap[] latestScreenshots = new Bitmap[6]; // 截图缓冲区
         private static readonly InputSimulator sim = new InputSimulator(); // 模拟按键
-
 
 
         private static readonly D3UI d3UI = new D3UI();
@@ -573,18 +570,16 @@ namespace D3H
             {
                 switch (modes[index])
                 {
-                    case "无": break;
+                    case "无":
+                        break;
                     case "按住不放":
                         Cast(index, 1);
                         break;
                     case "好了就按":
                         if (coldDownOK[index] == null)
                         {
-                            BattleStop();
-                            MessageBox.Show($"请先按 {((TextBox)FindName("冷却初始化")).Text} 来截取技能未冷却时的图标",
-                                "缺少技能未冷却图标",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Information);
+                            battle = false;
+                            BattleStop(true);
                             return;
                         }
                         timers[index] = new Timer(callbacks[index], null, 0, 20);
@@ -599,12 +594,22 @@ namespace D3H
         /// <summary>
         /// 停止战斗模式
         /// </summary>
-        private void BattleStop()
+        private void BattleStop(bool bad=false)
         {
-            foreach (Timer? timer in timers)
+            foreach (Timer timer in timers)
             {
                 timer?.Dispose();
             }
+
+            if (bad)
+            {
+                MessageBox.Show(
+                $"请先按 {((TextBox)FindName("冷却初始化")).Text} 来截取技能未冷却时的图标",
+                "缺少技能未冷却图标",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            }
+
             for (int index = 0; index < 6; index++)
             {
                 if (modes[index] == "按住不放")

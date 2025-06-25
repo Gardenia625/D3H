@@ -148,7 +148,7 @@
                     <!-- 可以继续添加其他按键设置 -->
                 </Grid>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                    <TextBlock Text="冷却初始化快捷键：" Foreground="Orange	"  VerticalAlignment="Center"
+                    <TextBlock Text="冷却初始化快捷键：" Foreground="Orange"  VerticalAlignment="Center"
                                ToolTip='若存在按键模式为"好了就放", 则需要先按一次这个快捷键, 以截取技能未冷却时的图标'/>
                     <TextBox Width="75" Text="Ctrl + 1" Name="冷却初始化"
                          ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
