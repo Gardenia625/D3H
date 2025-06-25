@@ -1,0 +1,173 @@
+﻿<Window x:Class="D3H.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="暗黑 3 助手 by Gardenia"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        Background="#FFEEEEEE ">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧: 战斗区 -->
+        <GroupBox Header="战斗设置" Grid.Column="0" Margin="5">
+            <StackPanel Margin="10">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <TextBlock Text="战斗宏快捷键：" Foreground="Red"  VerticalAlignment="Center"/>
+                    <TextBox Width="100" Text="Ctrl + 1" Name="战斗"
+                             ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                             GotFocus="TextBox_GotFocus" 
+                             LostFocus="TextBox_LostFocus"/>
+                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 标题 -->
+                    <Label Content="快捷键" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center"></Label>
+                    <Label Content="按键模式" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center"></Label>
+                    <Label Content="间隔" ToolTip="毫秒"  Grid.Row="0" Grid.Column="3" HorizontalAlignment="Center"></Label>
+
+                    <!-- 技能一 -->
+                    <TextBlock Text="技能一：" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                    <TextBox Text="Q" Grid.Row="1" Grid.Column="1" Name="技能1"
+                             ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                             GotFocus="TextBox_GotFocus" 
+                             LostFocus="TextBox_LostFocus"/>
+                    <ComboBox Grid.Row="1" Grid.Column="2" Name="技能1模式"
+                              SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem Content="无" IsSelected="True"/>
+                        <ComboBoxItem Content="按住不放"/>
+                        <ComboBoxItem Content="好了就按"/>
+                        <ComboBoxItem Content="固定间隔"/>
+                    </ComboBox>
+                    <TextBox Text="0" Grid.Row="1" Grid.Column="3" Name="技能1间隔"
+                             TextChanged="IntTextBox_TextChanged"/>
+
+                    <!-- 技能二 -->
+                    <TextBlock Text="技能二：" Grid.Row="2" Grid.Column="0"/>
+                    <TextBox Text="W" Grid.Row="2" Grid.Column="1" Name="技能2"
+                             ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                             GotFocus="TextBox_GotFocus" 
+                             LostFocus="TextBox_LostFocus"/>
+                    <ComboBox Grid.Row="2" Grid.Column="2" Name="技能2模式"
+                              SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem Content="无" IsSelected="True"/>
+                        <ComboBoxItem Content="按住不放"/>
+                        <ComboBoxItem Content="好了就按"/>
+                        <ComboBoxItem Content="固定间隔"/>
+                    </ComboBox>
+                    <TextBox Text="0" Grid.Row="2" Grid.Column="3" Name="技能2间隔"
+                             TextChanged="IntTextBox_TextChanged"/>
+
+                    <!-- 技能三 -->
+                    <TextBlock Text="技能三：" Grid.Row="3" Grid.Column="0"/>
+                    <TextBox Text="E" Grid.Row="3" Grid.Column="1" Name="技能3"
+                             ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                             GotFocus="TextBox_GotFocus"
+                             LostFocus="TextBox_LostFocus"/>
+                    <ComboBox Grid.Row="3" Grid.Column="2" Name="技能3模式"
+                              SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem Content="无" IsSelected="True"/>
+                        <ComboBoxItem Content="按住不放"/>
+                        <ComboBoxItem Content="好了就按"/>
+                        <ComboBoxItem Content="固定间隔"/>
+                    </ComboBox>
+                    <TextBox Text="0" Grid.Row="3" Grid.Column="3" Name="技能3间隔"
+                             TextChanged="IntTextBox_TextChanged"/>
+
+                    <!-- 技能四 -->
+                    <TextBlock Text="技能四：" Grid.Row="4" Grid.Column="0"/>
+                    <TextBox Text="R" Grid.Row="4" Grid.Column="1" Name="技能4"
+                             ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                             GotFocus="TextBox_GotFocus"
+                             LostFocus="TextBox_LostFocus"/>
+                    <ComboBox Grid.Row="4" Grid.Column="2" Name="技能4模式"
+                              SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem Content="无" IsSelected="True"/>
+                        <ComboBoxItem Content="按住不放"/>
+                        <ComboBoxItem Content="好了就按"/>
+                        <ComboBoxItem Content="固定间隔"/>
+                    </ComboBox>
+                    <TextBox Text="0" Grid.Row="4" Grid.Column="3" Name="技能4间隔"
+                             TextChanged="IntTextBox_TextChanged"/>
+
+                    <!-- 左键技能 -->
+                    <TextBlock Text="左键技能：" Grid.Row="5" Grid.Column="0"/>
+                    <TextBox Text="鼠标左键" IsEnabled="False" Grid.Row="5" Grid.Column="1"/>
+                    <ComboBox Grid.Row="5" Grid.Column="2" Name="左键技能模式"
+                              SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem Content="无" IsSelected="True"/>
+                        <ComboBoxItem Content="按住不放"/>
+                        <ComboBoxItem Content="好了就按"/>
+                        <ComboBoxItem Content="固定间隔"/>
+                    </ComboBox>
+                    <TextBox Text="0" Grid.Row="5" Grid.Column="3" Name="左键技能间隔"
+                             TextChanged="IntTextBox_TextChanged"/>
+
+                    <!-- 右键技能 -->
+                    <TextBlock Text="右键技能：" Grid.Row="6" Grid.Column="0"/>
+                    <TextBox Text="鼠标右键" IsEnabled="False" Grid.Row="6" Grid.Column="1"/>
+                    <ComboBox Grid.Row="6" Grid.Column="2" Name="右键技能模式"
+                              SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem Content="无" IsSelected="True"/>
+                        <ComboBoxItem Content="按住不放"/>
+                        <ComboBoxItem Content="好了就按"/>
+                        <ComboBoxItem Content="固定间隔"/>
+                    </ComboBox>
+                    <TextBox Text="0" Grid.Row="6" Grid.Column="3" Name="右键技能间隔"
+                             TextChanged="IntTextBox_TextChanged"/>
+
+                    <!-- 可以继续添加其他按键设置 -->
+                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="冷却初始化快捷键：" Foreground="Orange	"  VerticalAlignment="Center"
+                               ToolTip='若存在按键模式为"好了就放", 则需要先按一次这个快捷键, 以截取技能未冷却时的图标'/>
+                    <TextBox Width="75" Text="Ctrl + 1" Name="冷却初始化"
+                         ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                         PreviewKeyDown="TextBox_PreviewKeyDown"
+                         GotFocus="TextBox_GotFocus" 
+                         LostFocus="TextBox_LostFocus"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 右侧: 日常区 -->
+        <GroupBox Header="日常功能" Grid.Column="1" Margin="5">
+            <StackPanel Margin="10">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <TextBlock Text="日常宏快捷键：" Foreground="Red"  VerticalAlignment="Center"/>
+                    <TextBox Width="75" Text="Ctrl + 1" Name="日常"
+                             ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                             GotFocus="TextBox_GotFocus"
+                             LostFocus="TextBox_LostFocus"/>
+                </StackPanel>
+
+                <CheckBox Content="一键分解" IsChecked="True"/>
+                <CheckBox Content="按快捷键时播放声音" IsChecked="True"/>
+            </StackPanel>
+        </GroupBox>
+    </Grid>
+</Window>
