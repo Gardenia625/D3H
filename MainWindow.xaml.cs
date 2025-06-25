@@ -3,18 +3,17 @@ using System.Drawing; // Bitmap
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json; // JSON 序列化/反序列化
-using System.Threading;
+//using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Threading; // 时间相关
 using WindowsInput; // 鼠标键盘输入
 
 // dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "%USERPROFILE%\Desktop\D3H"
 
 
-namespace D3H
+namespace D3H   
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -45,18 +44,15 @@ namespace D3H
         };
         // 技能快捷键
         private (Key key, ModifierKeys mod)[] skillHotkeys = Enumerable.Repeat((Key.None, ModifierKeys.None), 4).ToArray();
-        private DispatcherTimer[] timers = Enumerable.Range(0, 6)
-            .Select(_ => new DispatcherTimer())
-            .ToArray();
+        private Timer?[] timers = new Timer?[6];
         private string[] modes = ["无", "无", "无", "无", "无", "无"];
         // 放技能函数
-        private EventHandler[] currentTicks = Enumerable.Range(0, 6)
-            .Select(_ => new EventHandler((sender, e) => { }))
+        private TimerCallback[] callbacks = Enumerable.Range(0, 6)
+            .Select(_ => new TimerCallback(_ => { }))
             .ToArray();
         private int[] intervals = [0, 0, 0, 0, 0, 0]; // 释放间隔
 
         private Bitmap?[] coldDownOK = new Bitmap?[6]; // 冷却转好的图片
-        //private Bitmap?[] coldDownOK = Enumerable.Repeat<Bitmap?>(null, 6).ToArray(); // 冷却转好的图片
         private Bitmap?[] latestScreenshots = new Bitmap?[6]; // 截图缓冲区
         private static readonly InputSimulator sim = new InputSimulator(); // 模拟按键
 
@@ -83,6 +79,16 @@ namespace D3H
         const int MOD_ALT = 0x0001;     // Alt
         const int MOD_CONTROL = 0x0002; // Ctrl
         const int MOD_SHIFT = 0x0004;   // Shift
+
+        // 获取键盘布局
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetKeyboardLayout(uint idThread);
+        // 发送 Windows 消息
+        [DllImport("user32.dll")]
+        private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        private const uint WM_INPUTLANGCHANGEREQUEST = 0x0050; // Windows消息常量 - 请求更改输入语言
+        private const uint INPUTLANGCHANGE_SYSCHARSET = 0x0001; // 输入语言更改标志 - 使用系统字符集
+        private static readonly IntPtr ENGLISH_LAYOUT = (IntPtr)0x04090409; // 英语(美国)
         #endregion
 
 
@@ -101,16 +107,23 @@ namespace D3H
             _settings = LoadSettingsFile();
 
             // 切换窗口时, 取消快捷键录入状态
-            this.Deactivated += (sender, e) =>
+            Deactivated += (sender, e) =>
             {
                 isRecordingHotkey = false;
                 currentRecordingTextBox = null;
             };
 
 
-
-            this.Loaded += (sender, e) => LoadSettings();
-            this.Closing += MainWindow_Closing;
+            // 设为上次的设置
+            Loaded += (s, e) => LoadSettings();
+            // 禁用输入法（强制英文模式）
+            Loaded += (s, e) =>
+            {
+                var hWnd = new WindowInteropHelper(this).Handle;
+                PostMessage(hWnd, WM_INPUTLANGCHANGEREQUEST,
+                           (IntPtr)INPUTLANGCHANGE_SYSCHARSET, ENGLISH_LAYOUT);
+            };
+            Closing += MainWindow_Closing;
         }
 
         #region JSON
@@ -464,20 +477,21 @@ namespace D3H
 
             double maxMse = 255 * 255;
             double similarity = 1.0 - (mse / maxMse);
+            Console.WriteLine(similarity);
             return similarity;
         }
 
         /// <summary>
         /// 好了就按技能
         /// </summary>
-        private async Task SmartCast(int index)
+        private void SmartCast(int index)
         {
             latestScreenshots[index]?.Dispose();
             latestScreenshots[index] = GetColdDownImage(index);
             double similarity = CalculateSimilarity(coldDownOK[index], latestScreenshots[index]);
             if (similarity > 0.999)
             {
-                await Task.Delay(1);
+                //await Task.Delay(1);
                 Cast(index);
             }
         }
@@ -492,25 +506,21 @@ namespace D3H
             string name = comboBox.Name[..^2];
             int index = skillIndex[name];
 
-            timers[index].Tick -= currentTicks[index];
             string mode = ((ComboBoxItem)comboBox.SelectedItem)?.Content?.ToString() ?? "无";
             modes[index] = mode; // 记录当前模式
 
-            if (mode == "无" || mode == "按住不放")
+            switch (mode)
             {
-                currentTicks[index] = (object? sender, EventArgs e) => { };
+                case "无":
+                case "按住不放":
+                    break;
+                case "好了就按":
+                    callbacks[index] = ( _ => SmartCast(index));
+                    break;
+                case "固定间隔":
+                    callbacks[index] = (_ => Cast(index));
+                    break;
             }
-            else if (mode == "好了就按")
-            {
-                timers[index].Interval = TimeSpan.FromMilliseconds(20);
-                currentTicks[index] = async (object? sender, EventArgs e) => await SmartCast(index);
-            }
-            else if (mode == "固定间隔")
-            {
-                timers[index].Interval = TimeSpan.FromMilliseconds(intervals[index]);
-                currentTicks[index] = (object? sender, EventArgs e) => Cast(index);
-            }
-            timers[index].Tick += currentTicks[index];
             Console.WriteLine($"第 {index} 个技能的案件模式 = {mode}");
 
             var intervalBox = FindName(name + "间隔") as TextBox;
@@ -548,7 +558,6 @@ namespace D3H
             string name = textBox.Name[..^2];
             int index = skillIndex[name];
             intervals[index] = int.Parse(filtered);
-            timers[index].Interval = TimeSpan.FromMilliseconds(intervals[index]);
         }
 
         #endregion
@@ -558,32 +567,31 @@ namespace D3H
         /// <summary>
         /// 开启战斗模式
         /// </summary>
-        private async Task BattleStart()
+        private void BattleStart()
         {
             for (int index = 0; index < 6; index++)
             {
-                if (modes[index] == "按住不放")
+                switch (modes[index])
                 {
-                    Cast(index, 1);
-                }
-                else if (modes[index] == "好了就按")
-                {
-                    if (coldDownOK[index] == null)
-                    {
-                        BattleStop();
-                        MessageBox.Show($"请先按 {((TextBox)FindName("冷却初始化")).Text} 来截取技能未冷却时的图标",
-                            "缺少技能未冷却图标",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+                    case "无": break;
+                    case "按住不放":
+                        Cast(index, 1);
                         break;
-                    }
-                    await SmartCast(index);
-                    timers[index].Start();
-                }
-                else if (modes[index] == "固定间隔")
-                {
-                    Cast(index);
-                    timers[index].Start();
+                    case "好了就按":
+                        if (coldDownOK[index] == null)
+                        {
+                            BattleStop();
+                            MessageBox.Show($"请先按 {((TextBox)FindName("冷却初始化")).Text} 来截取技能未冷却时的图标",
+                                "缺少技能未冷却图标",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                            return;
+                        }
+                        timers[index] = new Timer(callbacks[index], null, 0, 20);
+                        break;
+                    case "固定间隔":
+                        timers[index] = new Timer(callbacks[index], null, 0, intervals[index]);
+                        break;
                 }
             }
         }
@@ -593,9 +601,9 @@ namespace D3H
         /// </summary>
         private void BattleStop()
         {
-            foreach (DispatcherTimer timer in timers)
+            foreach (Timer? timer in timers)
             {
-                timer.Stop();
+                timer?.Dispose();
             }
             for (int index = 0; index < 6; index++)
             {
@@ -670,7 +678,7 @@ namespace D3H
                     if (battle)
                     {
                         Console.WriteLine("开始战斗");
-                        _ = BattleStart();
+                        BattleStart();
                     }
                     else
                     {

@@ -60,6 +60,7 @@
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
                     <TextBox Text="0" Grid.Row="1" Grid.Column="3" Name="技能1间隔"
+                             IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 技能二 -->
@@ -77,6 +78,7 @@
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
                     <TextBox Text="0" Grid.Row="2" Grid.Column="3" Name="技能2间隔"
+                             IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 技能三 -->
@@ -94,6 +96,7 @@
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
                     <TextBox Text="0" Grid.Row="3" Grid.Column="3" Name="技能3间隔"
+                             IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 技能四 -->
@@ -111,6 +114,7 @@
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
                     <TextBox Text="0" Grid.Row="4" Grid.Column="3" Name="技能4间隔"
+                             IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 左键技能 -->
@@ -124,6 +128,7 @@
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
                     <TextBox Text="0" Grid.Row="5" Grid.Column="3" Name="左键技能间隔"
+                             IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 右键技能 -->
@@ -137,6 +142,7 @@
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
                     <TextBox Text="0" Grid.Row="6" Grid.Column="3" Name="右键技能间隔"
+                             IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 可以继续添加其他按键设置 -->

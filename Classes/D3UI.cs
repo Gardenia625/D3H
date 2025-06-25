@@ -5,14 +5,15 @@ using System.Runtime.InteropServices;  // 获取窗口大小
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using static D3H.Classes.D3UI;
 
 namespace D3H.Classes
 {
     // 所有数据采自 2560 x 1600 屏幕
     internal class D3UI
     {
-        public Rect d3Rect { get; private set; }
-        public Rect[] skillRects { get; private set; } = [];
+        public Rect d3 { get; private set; }
+        public Rect[] skillRects { get; private set; }
 
 
 
@@ -33,9 +34,9 @@ namespace D3H.Classes
             {
                 if (GetWindowRect(hWnd, out RECT rect))
                 {
-                    d3Rect = rect.ToRect();
-                    Console.WriteLine($"游戏窗口位置: {d3Rect.X} x {d3Rect.Y}");
-                    Console.WriteLine($"游戏窗口大小: {d3Rect.Width} x {d3Rect.Height}");
+                    d3 = rect.ToRect();
+                    Console.WriteLine($"游戏窗口位置: {d3.X} x {d3.Y}");
+                    Console.WriteLine($"游戏窗口大小: {d3.Width} x {d3.Height}");
                 }
             }
             else
@@ -45,30 +46,38 @@ namespace D3H.Classes
         }
 
         /// <summary>
-        /// 游戏内坐标转换为屏幕坐标
+        /// 按分辨率成比例转换坐标
         /// </summary>
-        private (int, int) GameToScreenXY(double x, double y)
+        private double mapX(double x)
         {
-            return ((int)Math.Round(x * d3Rect.Width / 2560), (int)Math.Round(y * d3Rect.Height / 1600));
+            return x * d3.Width / 2560;
         }
-        /// <summary>
-        /// 游戏内矩形转换为屏幕矩形
-        /// </summary>
-        private Rect GameToScreenRect(Rect rect)
+        private double mapY(double y)
         {
-            var (x, y) = GameToScreenXY(rect.X, rect.Y);
-            var (width, height) = GameToScreenXY(rect.Width, rect.Height);
-            return new Rect(x, y, width, height);
+            return y * d3.Height / 1600;
         }
+
+
+      
 
         /// <summary>
         /// 生成游戏内重要坐标和矩形
         /// </summary>
         private void GeneratePositions()
         {
-            skillRects = skillRectsOriginal
-                .Select(x => GameToScreenRect(x))
-                .ToArray();
+            double y = mapY(1500);
+            double width = mapX(10);
+            double height = mapX(5);
+            Func<double, double> skillX = (x => d3.Width / 2 - mapY(1280 - x));
+            skillRects = new Rect[]
+            {
+                new Rect(skillX(829), y, width, height),
+                new Rect(skillX(928), y, width, height),
+                new Rect(skillX(1026), y, width, height),
+                new Rect(skillX(1125), y, width, height),
+                new Rect(skillX(1228), y, width, height),
+                new Rect(skillX(1325), y, width, height)
+            };
 
         }
 
@@ -78,15 +87,15 @@ namespace D3H.Classes
         // 左上角 x 坐标: [801, 900, 998, 1097, 1200, 1297]
         // 左上角 y 坐标: 1492
         // 判断冷却是否结束在 [0, 65]^2 中采 [28, 37] * [8, 12]
-        private static readonly Rect[] skillRectsOriginal =
-        {
-            new Rect(829, 1500, 10, 5),
-            new Rect(928, 1500, 10, 5),
-            new Rect(1026, 1500, 10, 5),
-            new Rect(1125, 1500, 10, 5),
-            new Rect(1228, 1500, 10, 5),
-            new Rect(1325, 1500, 10, 5)
-        };
+        //private static readonly Rect[] skillRectsOriginal =
+        //{
+        //    new Rect(829, 1500, 10, 5),
+        //    new Rect(928, 1500, 10, 5),
+        //    new Rect(1026, 1500, 10, 5),
+        //    new Rect(1125, 1500, 10, 5),
+        //    new Rect(1228, 1500, 10, 5),
+        //    new Rect(1325, 1500, 10, 5)
+        //};
 
 
 
