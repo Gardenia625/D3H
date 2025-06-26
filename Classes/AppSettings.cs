@@ -26,6 +26,7 @@ namespace D3H.Classes
             ["冷却初始化"] = new HotkeyBinding("F5", "None"),
             ["仅按住技能"] = new HotkeyBinding("D2", "Control"),
             ["日常"] = new HotkeyBinding("F10", "None"),
+            ["按左键"] = new HotkeyBinding("D", "None"),
         };
         public HotkeyBinding[] skillHotkeys { get; set; } =
         {
@@ -39,7 +40,9 @@ namespace D3H.Classes
 
         public Dictionary<string, bool> checks { get; set; } = new()
         {
-            { "开启按键音", false }
+            { "开启按键音", false },
+            { "一键分解", true },
+            { "键盘代替左键", true }
         };
 
         public string safeZone { get; set; } = "[]";

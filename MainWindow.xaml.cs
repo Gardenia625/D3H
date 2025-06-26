@@ -33,7 +33,8 @@ namespace D3H
             { "战斗", 0 },
             { "冷却初始化", 1 },
             { "仅按住技能", 2 },
-            { "日常", 100 }
+            { "日常", 100 },
+            { "按左键", 101 }
         };
         private Dictionary<string, HotkeyBinding> hotkeys = new();
         // 战斗区
@@ -274,6 +275,13 @@ namespace D3H
             SaveSettingsFile(_settings);
         }
 
+        /// <summary>
+        /// 保存按钮
+        /// </summary>
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveSettings();
+        }
 
         #endregion
 
@@ -1007,6 +1015,13 @@ namespace D3H
                         if (IsSmithPageOn())
                         {
                             _ = Decompose();
+                        }
+                    }
+                    else if (wParam.ToInt32() == hotkeyID["按左键"])
+                    {
+                        if (checks["键盘代替左键"])
+                        {
+                            sim.Mouse.LeftButtonClick();
                         }
                     }
                 }
