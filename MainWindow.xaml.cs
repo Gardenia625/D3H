@@ -3,13 +3,16 @@ using System;
 using System.Drawing; // Bitmap
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Text.Json; // JSON 序列化/反序列化
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+//using System.Windows.Media;
 using WindowsInput; // 鼠标键盘输入
+using WindowsInput.Native; // VirtualKeyCode
 
 // dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "%USERPROFILE%\Desktop\D3H"
 
@@ -51,14 +54,13 @@ namespace D3H
         private TimerCallback[] callbacks = new TimerCallback[6]; // 放技能函数
         private int[] intervals = [0, 0, 0, 0, 0, 0]; // 释放间隔
         private Bitmap[] coldDownOK = new Bitmap[6]; // 冷却转好的图片
-        private Bitmap[] latestScreenshots = new Bitmap[6]; // 截图缓冲区
+        private Bitmap[] latestScreenshots = new Bitmap[6]; // 冷却截图缓冲区
         private static readonly InputSimulator sim = new InputSimulator(); // 模拟按键
 
 
         // 日常区
         private Dictionary<string, bool> checks = new();
-
-
+        private HashSet<int> safeZone = new();
 
 
         private static readonly D3UI d3UI = new D3UI();
@@ -92,7 +94,13 @@ namespace D3H
         private const uint WM_INPUTLANGCHANGEREQUEST = 0x0050; // Windows消息常量 - 请求更改输入语言
         private const uint INPUTLANGCHANGE_SYSCHARSET = 0x0001; // 输入语言更改标志 - 使用系统字符集
         private static readonly IntPtr ENGLISH_LAYOUT = (IntPtr)0x04090409; // 英语(美国)
-        
+
+        // 获取屏幕分辨率
+        [DllImport("user32.dll")]
+        static extern int GetSystemMetrics(int nIndex);
+        int screenWidth = GetSystemMetrics(0);
+        int screenHeight = GetSystemMetrics(1);
+
         // 控制台
         [DllImport("kernel32.dll")]
         private static extern bool AllocConsole();
@@ -227,6 +235,9 @@ namespace D3H
                 checkBox.IsChecked = item.Value;
                 SetCheck(item.Key, item.Value);
             }
+
+            // 读取安全格
+            safeZone = JsonSerializer.Deserialize<HashSet<int>>(_settings.safeZone) ?? new HashSet<int>();
         }
 
         /// <summary>
@@ -257,6 +268,8 @@ namespace D3H
             {
                 _settings.checks[item.Key] = item.Value;
             }
+            // 保存安全格
+            _settings.safeZone = JsonSerializer.Serialize(safeZone);
 
             SaveSettingsFile(_settings);
         }
@@ -445,7 +458,6 @@ namespace D3H
                 g.CopyFromScreen((int)Math.Round(rect.X), (int)Math.Round(rect.Y), 0, 0,
                     new System.Drawing.Size((int)Math.Round(rect.Width), (int)Math.Round(rect.Height)));
             }
-
             return bmp;
         }
 
@@ -593,6 +605,244 @@ namespace D3H
         {
             var checkbox = (CheckBox)sender;
             SetCheck(checkbox.Name, checkbox?.IsChecked ?? false);
+        }
+
+        /// <summary>
+        /// 移动鼠标到 (x, y)
+        /// </summary>
+        private void MoveMouseTo(double x, double y)
+        {
+            sim.Mouse.MoveMouseTo(65535 * x / screenWidth, 65535 * y / screenHeight);
+        }
+
+        /// <summary>
+        /// 获取 rect 区域 RGB 各自最大值
+        /// </summary>
+        private (int r, int g, int b) ScreenShotMax(Rect rect)
+        {
+            Bitmap tmp = ScreenShot(rect);
+            int width = tmp.Width;
+            int height = tmp.Height;
+
+            int r = 0, g = 0, b = 0;
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    Color c = tmp.GetPixel(x, y);
+                    r = Math.Max(r, c.R);
+                    g = Math.Max(g, c.G);
+                    b = Math.Max(b, c.B);
+                }
+            }
+            tmp.Dispose();
+            return (r, g, b);
+        }
+
+        /// <summary>
+        /// 把鼠标移到第 index 个格子并返回物品品质
+        /// </summary>
+        private async Task<int> GetItemQuality(int index)
+        {
+            Rect rect = d3UI.backpackRects[index];
+            // 鼠标移动到格子中心
+            MoveMouseTo(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
+            int r = -1, g = -1, b = -1;
+            // 获取边框颜色
+            DateTime start = DateTime.Now;
+            while ((DateTime.Now - start).TotalMilliseconds < 100)
+            {
+                var (rr, gg, bb) = ScreenShotMax(new Rect(rect.X - d3UI.mapY(9), rect.Y + rect.Height / 2, 3, 1));
+                if (r == rr && g == gg && b == bb) break;
+                await Task.Delay(20);
+                if (rr < 22 && gg < 20 && bb < 15 && rr > bb && gg > bb) continue;
+                r = rr;
+                g = gg;
+                b = bb;
+            }
+
+            // 装备品质
+            // 0: 未定义
+            // 1: 垃圾
+            // 2: 远古
+            // 3: 神圣
+            // 4: 太古
+            int quality = 0;
+            if ((r >= 70 || b <= 20) // 红色多, 蓝色少 (偏暖)
+                && Math.Max(Math.Abs(r - g), Math.Max(Math.Abs(g - b), Math.Abs(b - r))) > 20 // 有颜色倾向
+                && (r + g + b < 410)) // 偏暗
+            {
+                quality = (g < 35) ? 4 : 2; // 以红色分量来判断是太古还是远古
+            }
+            else if (b > 100 && b > g && g > r) // 蓝色调冷光
+            {
+                quality = 3; // 神圣
+            }
+            else
+            {
+                quality = 1;
+            }
+
+            return quality;
+        }
+
+        /// <summary>
+        /// 全屏截图
+        /// </summary>
+        private Bitmap ScreenShot()
+        {
+            Bitmap screen = new Bitmap(screenWidth, screenHeight);
+            using (Graphics g = Graphics.FromImage(screen))
+            {
+                g.CopyFromScreen(0, 0, 0, 0, screen.Size);
+            }
+            return screen;
+        }
+
+        /// <summary>
+        /// 获取 screen 上 xy 点的颜色
+        /// </summary>
+        private Color GetPixel(Bitmap screen, double[] xy)
+        {
+            using (Bitmap bmp = new Bitmap(1, 1))
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.CopyFromScreen((int)Math.Round(xy[0]), (int)Math.Round(xy[1]), 0, 0, bmp.Size);
+                    return bmp.GetPixel(0, 0);
+            }
+        }
+
+        /// <summary>
+        /// 判断是否存在确认框
+        /// </summary>
+        private bool IsDialogBoxOnScreen()
+        {
+            Bitmap screen = ScreenShot();
+            Color c1 = GetPixel(screen, d3UI.dialogBoxPoints[0]);
+            Color c2 = GetPixel(screen, d3UI.dialogBoxPoints[1]);
+
+            Func<Color, bool> isDarkRed = c => (c.R > c.G && c.G > c.B
+                && c.B < 5 && c.G < 15 && c.R > 25);
+            bool ans = isDarkRed(c1) && isDarkRed(c2);
+            screen.Dispose();
+            return ans;
+        }
+
+        /// <summary>
+        /// 等待确认框出现, 若出现则回车, 返回是否成功
+        /// </summary>
+        private async Task<bool> ClickDialogBox()
+        {
+            DateTime start = DateTime.Now;
+            while ((DateTime.Now - start).TotalMilliseconds < 100)
+            {
+                if (IsDialogBoxOnScreen())
+                {
+                    sim.Keyboard.KeyPress(VirtualKeyCode.RETURN);
+                    return true;
+                }
+                await Task.Delay(20);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 一键分解装备
+        /// </summary>
+        private async Task Decompose()
+        {
+            if (!IsSmithPageOn()) return;
+            // 切换到分解页面
+            MoveMouseTo(d3UI.smithPoints[4][0], d3UI.smithPoints[4][1]);
+            sim.Mouse.LeftButtonClick();
+
+            // 分解三色垃圾
+            Bitmap screen = ScreenShot();
+            Color cWhite = GetPixel(screen, d3UI.smithPoints[6]);
+            Color cBlue = GetPixel(screen, d3UI.smithPoints[7]);
+            Color cYellow = GetPixel(screen, d3UI.smithPoints[8]);
+            if (cWhite.R > 65)
+            {
+                MoveMouseTo(d3UI.smithPoints[10][0], d3UI.smithPoints[10][1]);
+                sim.Mouse.LeftButtonClick();
+                await ClickDialogBox();
+            }
+            if (cBlue.B > 65)
+            {
+                MoveMouseTo(d3UI.smithPoints[11][0], d3UI.smithPoints[11][1]);
+                sim.Mouse.LeftButtonClick();
+                await ClickDialogBox();
+            }
+            if (cYellow.R > 60)
+            {
+                MoveMouseTo(d3UI.smithPoints[12][0], d3UI.smithPoints[12][1]);
+                sim.Mouse.LeftButtonClick();
+                await ClickDialogBox();
+            }
+
+            bool[] hasItem = new bool[60];
+            double[][] scans = [[0.6, 0.7], [0.35, 0.35], [0.7, 0.25]];
+            for (int index = 0; index < 60; index++)
+            {
+                if (safeZone.Contains(index)) continue; // 跳过安全格
+                foreach (double[] scan in scans)
+                {
+                    Color c = screen.GetPixel(
+                        (int)Math.Round(d3UI.backpackRects[index].X + scan[0] * d3UI.backpackRects[index].Width),
+                        (int)Math.Round(d3UI.backpackRects[index].Y + scan[1] * d3UI.backpackRects[index].Height)
+                        );
+                    if (c.R < 22 && c.G < 20 && c.B < 15 && c.R > c.B && c.G > c.B) continue;
+                    hasItem[index] = true;
+                    break;
+                }
+            }
+
+            // 分解背包中的装备
+            MoveMouseTo(d3UI.smithPoints[5][0], d3UI.smithPoints[5][1]);
+            sim.Mouse.LeftButtonClick();
+            for (int index = 0; index < 60; index++)
+            {
+                if (!hasItem[index]) continue;
+                int quality = await GetItemQuality(index);
+                if (quality > 1) continue; // 品质足够
+                // 分解
+                sim.Mouse.LeftButtonClick();
+                if (await ClickDialogBox() && index < 50 && hasItem[index + 10])
+                {
+                    hasItem[index + 10] = false;
+                    foreach (double[] scan in scans)
+                    {
+                        Color c = screen.GetPixel(
+                            (int)Math.Round(d3UI.backpackRects[index + 10].X + scan[0] * d3UI.backpackRects[index + 10].Width),
+                            (int)Math.Round(d3UI.backpackRects[index + 10].Y + scan[1] * d3UI.backpackRects[index + 10].Height)
+                            );
+                        if (c.R < 22 && c.G < 20 && c.B < 15 && c.R > c.B && c.G > c.B) continue;
+                        hasItem[index + 10] = true;
+                        break;
+                    }
+                }
+            }
+
+            sim.Mouse.RightButtonClick(); // 结束分解
+            screen.Dispose();
+        }
+
+        /// <summary>
+        /// 判断铁匠页面状态 0: 未开启, 1: 开启但不是分解页面, 2: 分解页面
+        /// </summary>
+        private bool IsSmithPageOn()
+        {
+            Bitmap screen = ScreenShot();
+            Color c1 = GetPixel(screen, d3UI.smithPoints[0]);
+            Color c2 = GetPixel(screen, d3UI.smithPoints[1]);
+            Color c3 = GetPixel(screen, d3UI.smithPoints[2]);
+            Color c4 = GetPixel(screen, d3UI.smithPoints[3]);
+            bool ans = c1.B > c1.G && c1.G > c1.R && c1.B > 170 && c1.B - c1.R > 80 // 亮蓝色
+                && c2.R + c2.G > 350 // 白黄高亮
+                && c3.B > c3.G && c3.G > c3.R && c3.B > 110 // 蓝偏亮
+                && c4.R > 50 && c4.G < 15 && c4.B < 15; // 偏红
+            screen.Dispose();
+            return ans;
         }
 
         #endregion
@@ -751,6 +1001,13 @@ namespace D3H
                     {
                         Console.WriteLine("按下所有需要按住的技能");
                         BattlePress();
+                    }
+                    else if (wParam.ToInt32() == hotkeyID["日常"])
+                    {
+                        if (IsSmithPageOn())
+                        {
+                            _ = Decompose();
+                        }
                     }
                 }
             }

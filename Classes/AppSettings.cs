@@ -41,5 +41,7 @@ namespace D3H.Classes
         {
             { "开启按键音", false }
         };
+
+        public string safeZone { get; set; } = "[]";
     }
 }

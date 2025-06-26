@@ -15,13 +15,19 @@ namespace D3H.Classes
         public Rect d3 { get; private set; }
         public Rect[] skillRects { get; private set; } = Array.Empty<Rect>();
 
+        public Rect[] backpackRects { get; private set; } = Array.Empty<Rect>();
 
+        public Double[][] dialogBoxPoints { get; private set; } = Array.Empty<Double[]>();
 
+        public Double[][] smithPoints { get; private set; } = Array.Empty<Double[]>();
 
         public D3UI()
         {
-            GetD3WidthAndHeight();  // 获取游戏窗口信息
-            GeneratePositions();    // 生成各元素信息
+            GetD3WidthAndHeight(); // 获取游戏窗口信息
+            GetCDRects();          // 生成技能冷却 Rects
+            GetBackpackRects();    // 生成背包格子 Rects
+            GetDialogBoxPoints();  // 计算确认框上两个点
+            GetSmithPoints();      // 计算铁匠铺中重要的点
         }
 
         /// <summary>
@@ -46,43 +52,20 @@ namespace D3H.Classes
         }
 
         /// <summary>
-        /// 按分辨率成比例转换坐标
+        /// 按分辨率成比例转换坐标 (仅作比例缩放)
         /// </summary>
-        private double mapX(double x)
+        public double mapX(double x)
         {
             return x * d3.Width / 2560;
         }
-        private double mapY(double y)
+        public double mapY(double y)
         {
             return y * d3.Height / 1600;
         }
 
 
-      
+        #region 技能图标
 
-        /// <summary>
-        /// 生成游戏内重要坐标和矩形
-        /// </summary>
-        private void GeneratePositions()
-        {
-            double y = mapY(1500);
-            double width = mapX(10);
-            double height = mapX(5);
-            Func<double, double> skillX = (x => d3.Width / 2 - mapY(1280 - x));
-            skillRects =
-            [
-                new Rect(skillX(829), y, width, height),
-                new Rect(skillX(928), y, width, height),
-                new Rect(skillX(1026), y, width, height),
-                new Rect(skillX(1125), y, width, height),
-                new Rect(skillX(1228), y, width, height),
-                new Rect(skillX(1325), y, width, height)
-            ];
-
-        }
-
-
-        // 技能图标
         // 大小: 66 * 66
         // 左上角 x 坐标: [801, 900, 998, 1097, 1200, 1297]
         // 左上角 y 坐标: 1492
@@ -97,7 +80,87 @@ namespace D3H.Classes
         //    new Rect(1325, 1500, 10, 5)
         //};
 
+        /// <summary>
+        /// 生成技能冷却截图 Rect
+        /// </summary>s
+        private void GetCDRects()
+        {
+            double y = mapY(1500);
+            double width = mapX(10);
+            double height = mapX(5);
+            Func<double, double> skillX = (x => d3.Width / 2 - mapY(1280 - x));
+            skillRects =
+            [
+                new Rect(d3.X + skillX(829), d3.Y + y, width, height),
+                new Rect(d3.X + skillX(928), d3.Y + y, width, height),
+                new Rect(d3.X + skillX(1026), d3.Y + y, width, height),
+                new Rect(d3.X + skillX(1125), d3.Y + y, width, height),
+                new Rect(d3.X + skillX(1228), d3.Y + y, width, height),
+                new Rect(d3.X + skillX(1325), d3.Y + y, width, height)
+            ];
 
+        }
+
+        #endregion 
+
+
+        /// <summary>
+        /// 获取背包 Rects
+        /// </summary>
+        private void GetBackpackRects()
+        {
+            int[] xs = [1794, 1869, 1944, 2018, 2093, 2168, 2242, 2317, 2392, 2466, 2541];
+            int[] ys = [830, 904, 977, 1051, 1125, 1199, 1272];
+
+            backpackRects = new Rect[60];
+            for (int row = 0; row < 6; row++)
+            {
+                for (int col = 0; col < 10; col++)
+                {
+                    backpackRects[row * 10 + col] = new Rect(
+                        d3.X + d3.Width - mapY(2560 - xs[col]),
+                        d3.Y + mapY(ys[row]),
+                        mapY(xs[col + 1] - xs[col]),
+                        mapY(ys[row + 1] - ys[row])
+                        );
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取确认框上的两个点
+        /// </summary>
+        private void GetDialogBoxPoints()
+        {
+            dialogBoxPoints = new double[2][];
+            dialogBoxPoints[0] = [d3.X + d3.Width / 2 - mapY(1280 - 1205), mapY(555)];
+            dialogBoxPoints[1] = [d3.X + d3.Width / 2 - mapY(1280 - 1045), mapY(555)];
+        }
+
+        /// <summary>
+        /// 铁匠铺的点
+        /// </summary>
+        private void GetSmithPoints()
+        {
+            smithPoints = new double[13][];
+            // logo
+            smithPoints[0] = [mapY(377), mapY(89)];
+            smithPoints[1] = [mapY(390), mapY(119)];
+            smithPoints[2] = [mapY(431), mapY(96)];
+            smithPoints[3] = [mapY(748), mapY(1156)];
+            // 分解子页按键
+            smithPoints[4] = [mapY(765), mapY(720)];
+            // 四个分解按钮边缘
+            smithPoints[5] = [mapY(226), mapY(412)];
+            smithPoints[6] = [mapY(372), mapY(412)];
+            smithPoints[7] = [mapY(471), mapY(412)];
+            smithPoints[8] = [mapY(571), mapY(412)];
+            // 四个分解按钮中心
+            smithPoints[9] = [mapY(245), mapY(431)];
+            smithPoints[10] = [mapY(372), mapY(431)];
+            smithPoints[11] = [mapY(471), mapY(431)];
+            smithPoints[12] = [mapY(571), mapY(431)];
+        }
 
         #region Win32 API
         // 查找窗口
