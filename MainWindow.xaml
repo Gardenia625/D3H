@@ -150,11 +150,20 @@
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <TextBlock Text="冷却初始化快捷键：" Foreground="Orange"  VerticalAlignment="Center"
                                ToolTip='若存在按键模式为"好了就放", 则需要先按一次这个快捷键, 以截取技能未冷却时的图标'/>
-                    <TextBox Width="75" Text="Ctrl + 1" Name="冷却初始化"
+                    <TextBox Width="75" Text="F5" Name="冷却初始化"
                          ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                          PreviewKeyDown="TextBox_PreviewKeyDown"
                          GotFocus="TextBox_GotFocus" 
                          LostFocus="TextBox_LostFocus"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="仅按住技能：" VerticalAlignment="Center"
+                        ToolTip="按下所有需要按住的技能"/>
+                    <TextBox Width="75" Text="Ctrl + 2" Name="仅按住技能"
+                     ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                     PreviewKeyDown="TextBox_PreviewKeyDown"
+                     GotFocus="TextBox_GotFocus" 
+                     LostFocus="TextBox_LostFocus"/>
                 </StackPanel>
             </StackPanel>
         </GroupBox>
@@ -164,7 +173,7 @@
             <StackPanel Margin="10">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                     <TextBlock Text="日常宏快捷键：" Foreground="Red"  VerticalAlignment="Center"/>
-                    <TextBox Width="75" Text="Ctrl + 1" Name="日常"
+                    <TextBox Width="75" Text="F1" Name="日常"
                              ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                              PreviewKeyDown="TextBox_PreviewKeyDown"
                              GotFocus="TextBox_GotFocus"
@@ -172,7 +181,8 @@
                 </StackPanel>
 
                 <CheckBox Content="一键分解" IsChecked="True"/>
-                <CheckBox Content="按快捷键时播放声音" IsChecked="True"/>
+                <CheckBox Content="按快捷键时播放声音" IsChecked="True" Name="开启按键音"
+                          Click="CheckBox_Click"/>
             </StackPanel>
         </GroupBox>
     </Grid>

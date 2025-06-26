@@ -24,7 +24,8 @@ namespace D3H.Classes
         {
             ["战斗"] = new HotkeyBinding("D1", "Control"),
             ["冷却初始化"] = new HotkeyBinding("F5", "None"),
-            ["日常"] = new HotkeyBinding("F1", "None"),
+            ["仅按住技能"] = new HotkeyBinding("D2", "Control"),
+            ["日常"] = new HotkeyBinding("F10", "None"),
         };
         public HotkeyBinding[] skillHotkeys { get; set; } =
         {
@@ -35,5 +36,10 @@ namespace D3H.Classes
         };
         public string[] modes { get; set; } = ["无", "无", "无", "无", "无", "无"];
         public int[] intervals { get; set; } = [100, 100, 100, 100, 100, 100];
+
+        public Dictionary<string, bool> checks { get; set; } = new()
+        {
+            { "开启按键音", false }
+        };
     }
 }

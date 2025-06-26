@@ -13,7 +13,7 @@ namespace D3H.Classes
     internal class D3UI
     {
         public Rect d3 { get; private set; }
-        public Rect[] skillRects { get; private set; }
+        public Rect[] skillRects { get; private set; } = Array.Empty<Rect>();
 
 
 
@@ -69,15 +69,15 @@ namespace D3H.Classes
             double width = mapX(10);
             double height = mapX(5);
             Func<double, double> skillX = (x => d3.Width / 2 - mapY(1280 - x));
-            skillRects = new Rect[]
-            {
+            skillRects =
+            [
                 new Rect(skillX(829), y, width, height),
                 new Rect(skillX(928), y, width, height),
                 new Rect(skillX(1026), y, width, height),
                 new Rect(skillX(1125), y, width, height),
                 new Rect(skillX(1228), y, width, height),
                 new Rect(skillX(1325), y, width, height)
-            };
+            ];
 
         }
 

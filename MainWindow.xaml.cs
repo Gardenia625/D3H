@@ -1,4 +1,5 @@
 ﻿using D3H.Classes;
+using System;
 using System.Drawing; // Bitmap
 using System.IO;
 using System.Runtime.InteropServices;
@@ -28,6 +29,7 @@ namespace D3H
         {
             { "战斗", 0 },
             { "冷却初始化", 1 },
+            { "仅按住技能", 2 },
             { "日常", 100 }
         };
         private Dictionary<string, HotkeyBinding> hotkeys = new();
@@ -42,17 +44,21 @@ namespace D3H
             { "左键技能", 4 },
             { "右键技能", 5 }
         };
-        // 技能快捷键
-        private (Key key, ModifierKeys mod)[] skillHotkeys = Enumerable.Repeat((Key.None, ModifierKeys.None), 4).ToArray();
+        
+        private (Key key, ModifierKeys mod)[] skillHotkeys = Enumerable.Repeat((Key.None, ModifierKeys.None), 4).ToArray(); // 技能快捷键
         private Timer[] timers = new Timer[6];
         private string[] modes = ["无", "无", "无", "无", "无", "无"];
-        // 放技能函数
-        private TimerCallback[] callbacks = new TimerCallback[6];
+        private TimerCallback[] callbacks = new TimerCallback[6]; // 放技能函数
         private int[] intervals = [0, 0, 0, 0, 0, 0]; // 释放间隔
-
         private Bitmap[] coldDownOK = new Bitmap[6]; // 冷却转好的图片
         private Bitmap[] latestScreenshots = new Bitmap[6]; // 截图缓冲区
         private static readonly InputSimulator sim = new InputSimulator(); // 模拟按键
+
+
+        // 日常区
+        private Dictionary<string, bool> checks = new();
+
+
 
 
         private static readonly D3UI d3UI = new D3UI();
@@ -86,13 +92,11 @@ namespace D3H
         private const uint WM_INPUTLANGCHANGEREQUEST = 0x0050; // Windows消息常量 - 请求更改输入语言
         private const uint INPUTLANGCHANGE_SYSCHARSET = 0x0001; // 输入语言更改标志 - 使用系统字符集
         private static readonly IntPtr ENGLISH_LAYOUT = (IntPtr)0x04090409; // 英语(美国)
-        #endregion
-
-
-
+        
         // 控制台
         [DllImport("kernel32.dll")]
         private static extern bool AllocConsole();
+        #endregion
 
         public MainWindow()
         {
@@ -208,14 +212,21 @@ namespace D3H
             {
                 string mode = _settings.modes[index];
                 modes[index] = mode;
-                ComboBox cb = (ComboBox)FindName(skillNames[index] + "模式");
-                cb.SelectedIndex = modeIndex[mode];
+                ComboBox checkBox = (ComboBox)FindName(skillNames[index] + "模式");
+                checkBox.SelectedIndex = modeIndex[mode];
 
                 intervals[index] = _settings.intervals[index];
-                TextBox tb = (TextBox)FindName(skillNames[index] + "间隔");
-                tb.Text = intervals[index].ToString();
+                TextBox textBox = (TextBox)FindName(skillNames[index] + "间隔");
+                textBox.Text = intervals[index].ToString();
             }
 
+            // 读取 checks 设置
+            foreach (var item in _settings.checks)
+            {
+                CheckBox checkBox = (CheckBox)FindName(item.Key);
+                checkBox.IsChecked = item.Value;
+                SetCheck(item.Key, item.Value);
+            }
         }
 
         /// <summary>
@@ -241,6 +252,12 @@ namespace D3H
                 _settings.modes[index] = modes[index];
                 _settings.intervals[index] = intervals[index];
             }
+            // 保存 checks 设置
+            foreach (var item in checks)
+            {
+                _settings.checks[item.Key] = item.Value;
+            }
+
             SaveSettingsFile(_settings);
         }
 
@@ -488,7 +505,6 @@ namespace D3H
             double similarity = CalculateSimilarity(coldDownOK[index], latestScreenshots[index]);
             if (similarity > 0.999)
             {
-                //await Task.Delay(1);
                 Cast(index);
             }
         }
@@ -559,6 +575,28 @@ namespace D3H
 
         #endregion
 
+        #region 日常功能
+
+        /// <summary>
+        /// 设置 check
+        /// </summary>
+        private void SetCheck(string name, bool isChecked)
+        {
+            checks[name] = isChecked;
+            Console.WriteLine($"{name} 状态：{isChecked}");
+        }
+
+        /// <summary>
+        /// 点击 CheckBox 时的响应
+        /// </summary>
+        private void CheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            var checkbox = (CheckBox)sender;
+            SetCheck(checkbox.Name, checkbox?.IsChecked ?? false);
+        }
+
+        #endregion
+
         #region 主要行为
 
         /// <summary>
@@ -576,12 +614,6 @@ namespace D3H
                         Cast(index, 1);
                         break;
                     case "好了就按":
-                        if (coldDownOK[index] == null)
-                        {
-                            battle = false;
-                            BattleStop(true);
-                            return;
-                        }
                         timers[index] = new Timer(callbacks[index], null, 0, 20);
                         break;
                     case "固定间隔":
@@ -592,24 +624,28 @@ namespace D3H
         }
 
         /// <summary>
+        /// 按下所有需要按住的技能
+        /// </summary>
+        private void BattlePress()
+        {
+            for (int index = 0; index < 6; index++)
+            {
+                if (modes[index] == "按住不放")
+                {
+                    Cast(index, 1);
+                }
+            }
+        }
+
+        /// <summary>
         /// 停止战斗模式
         /// </summary>
-        private void BattleStop(bool bad=false)
+        private void BattleStop()
         {
             foreach (Timer timer in timers)
             {
                 timer?.Dispose();
             }
-
-            if (bad)
-            {
-                MessageBox.Show(
-                $"请先按 {((TextBox)FindName("冷却初始化")).Text} 来截取技能未冷却时的图标",
-                "缺少技能未冷却图标",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-            }
-
             for (int index = 0; index < 6; index++)
             {
                 if (modes[index] == "按住不放")
@@ -673,28 +709,49 @@ namespace D3H
                     SetHotKey(key, modifiers);
                     return (IntPtr)1;
                 }
-                // 按一次开启战斗, 再按一次结束
-                else if (wParam.ToInt32() == hotkeyID["战斗"])
+                else
                 {
-                    if (isRunning) return (IntPtr)1;
-                    isRunning = true;
-                    Task.Delay(200).ContinueWith(_ => isRunning = false);
-                    battle = !battle;
-                    if (battle)
+                    if (checks["开启按键音"]) System.Media.SystemSounds.Beep.Play();
+                    // 按一次开启战斗, 再按一次结束
+                    if (wParam.ToInt32() == hotkeyID["战斗"])
                     {
-                        Console.WriteLine("开始战斗");
-                        BattleStart();
+                        if (isRunning) return (IntPtr)1;
+                        isRunning = true;
+                        Task.Delay(200).ContinueWith(_ => isRunning = false);
+                        for (int index = 0; index < 6; index++)
+                        {
+                            if (modes[index] == "好了就按" && coldDownOK[index] == null)
+                            {
+                                MessageBox.Show(
+                                    $"请先按 {((TextBox)FindName("冷却初始化")).Text} 来截取技能未冷却时的图标",
+                                    "缺少技能未冷却图标",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information);
+                                return (IntPtr)1;
+                            }
+                        }
+                        battle = !battle;
+                        if (battle)
+                        {
+                            Console.WriteLine("开始战斗");
+                            BattleStart();
+                        }
+                        else
+                        {
+                            Console.WriteLine("结束战斗");
+                            BattleStop();
+                        }
                     }
-                    else
+                    else if (wParam.ToInt32() == hotkeyID["冷却初始化"])
                     {
-                        Console.WriteLine("结束战斗");
-                        BattleStop();
+                        Console.WriteLine("截取技能未冷却时的图标");
+                        SetColdDownOK();
                     }
-                }
-                else if (wParam.ToInt32() == hotkeyID["冷却初始化"])
-                {
-                    Console.WriteLine("截取技能未冷却时的图标");
-                    SetColdDownOK();
+                    else if (wParam.ToInt32() == hotkeyID["仅按住技能"])
+                    {
+                        Console.WriteLine("按下所有需要按住的技能");
+                        BattlePress();
+                    }
                 }
             }
 
