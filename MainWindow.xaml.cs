@@ -834,7 +834,7 @@ namespace D3H
             for (int index = 0; index < 60; index++)
             {
                 colors[index] = screen.GetPixel(
-                    (int)Math.Round(d3UI.backpackRects[index].X + 0.08 * d3UI.backpackRects[index].Width),
+                    (int)Math.Round(d3UI.backpackRects[index].X + 0.1 * d3UI.backpackRects[index].Width),
                     (int)Math.Round(d3UI.backpackRects[index].Y + 0.7 * d3UI.backpackRects[index].Height)
                     );
                 if (safeZone.Contains(index)) continue; // 跳过安全格
@@ -872,7 +872,7 @@ namespace D3H
                         screen.Dispose();
                         screen = ScreenShot();
                         Color c = screen.GetPixel(
-                            (int)Math.Round(d3UI.backpackRects[index].X + 0.08 * d3UI.backpackRects[index].Width),
+                            (int)Math.Round(d3UI.backpackRects[index].X + 0.1 * d3UI.backpackRects[index].Width),
                             (int)Math.Round(d3UI.backpackRects[index].Y + 0.7 * d3UI.backpackRects[index].Height)
                             );
                         if (r == c.R && g == c.G && b == c.B) break;
