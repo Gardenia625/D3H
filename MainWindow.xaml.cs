@@ -800,23 +800,33 @@ namespace D3H
             Color cWhite = GetPixel(screen, d3UI.smithPoints[6]);
             Color cBlue = GetPixel(screen, d3UI.smithPoints[7]);
             Color cYellow = GetPixel(screen, d3UI.smithPoints[8]);
+            bool wait = false;
             if (cWhite.R > 65)
             {
                 MoveMouseTo(d3UI.smithPoints[10][0], d3UI.smithPoints[10][1]);
                 sim.Mouse.LeftButtonClick();
                 await ClickDialogBox();
+                wait = true;
             }
             if (cBlue.B > 65)
             {
                 MoveMouseTo(d3UI.smithPoints[11][0], d3UI.smithPoints[11][1]);
                 sim.Mouse.LeftButtonClick();
                 await ClickDialogBox();
+                wait = true;
             }
             if (cYellow.R > 60)
             {
                 MoveMouseTo(d3UI.smithPoints[12][0], d3UI.smithPoints[12][1]);
                 sim.Mouse.LeftButtonClick();
                 await ClickDialogBox();
+                wait = true;
+            }
+            if (wait)
+            {
+                await Task.Delay(100);
+                screen.Dispose();
+                screen = ScreenShot();
             }
 
             bool[] hasItem = new bool[60];
