@@ -10,6 +10,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Xml.Linq;
+
 //using System.Windows.Media;
 using WindowsInput; // 鼠标键盘输入
 using WindowsInput.Native; // VirtualKeyCode
@@ -237,6 +239,13 @@ namespace D3H
                 SetCheck(item.Key, item.Value);
             }
 
+            // 若未选中键盘代替左键, 则注销快捷键
+            if (!checks["键盘代替左键"])
+            {
+                IntPtr hwnd = new WindowInteropHelper(this).Handle;
+                UnregisterHotKey(hwnd, hotkeyID["按左键"]);
+            }
+
             // 读取安全格
             safeZone = JsonSerializer.Deserialize<HashSet<int>>(_settings.safeZone) ?? new HashSet<int>();
         }
@@ -420,19 +429,19 @@ namespace D3H
             Key key = skillHotkeys[index].key;
             ModifierKeys modifiers = skillHotkeys[index].mod;
             // 转换 WPF 的 Key 到 InputSimulator 的 VirtualKeyCode
-            var keyCode = (WindowsInput.Native.VirtualKeyCode)KeyInterop.VirtualKeyFromKey(key);
+            var keyCode = (VirtualKeyCode)KeyInterop.VirtualKeyFromKey(key);
 
             if (type != 2)
             {
                 // 按下修饰键
                 if (modifiers.HasFlag(ModifierKeys.Control))
-                    sim.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.CONTROL);
+                    sim.Keyboard.KeyDown(VirtualKeyCode.CONTROL);
 
                 if (modifiers.HasFlag(ModifierKeys.Alt))
-                    sim.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.MENU); // Alt 键的代码是 MENU
+                    sim.Keyboard.KeyDown(VirtualKeyCode.MENU); // Alt 键的代码是 MENU
 
                 if (modifiers.HasFlag(ModifierKeys.Shift))
-                    sim.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.SHIFT);
+                    sim.Keyboard.KeyDown(VirtualKeyCode.SHIFT);
 
                 // 按下主键
                 sim.Keyboard.KeyDown(keyCode);
@@ -445,13 +454,13 @@ namespace D3H
 
                 // 释放修饰键
                 if (modifiers.HasFlag(ModifierKeys.Shift))
-                    sim.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.SHIFT);
+                    sim.Keyboard.KeyUp(VirtualKeyCode.SHIFT);
 
                 if (modifiers.HasFlag(ModifierKeys.Alt))
-                    sim.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.MENU);
+                    sim.Keyboard.KeyUp(VirtualKeyCode.MENU);
 
                 if (modifiers.HasFlag(ModifierKeys.Control))
-                    sim.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.CONTROL);
+                    sim.Keyboard.KeyUp(VirtualKeyCode.CONTROL);
             }
         }
 
@@ -616,6 +625,20 @@ namespace D3H
         }
 
         /// <summary>
+        /// 取消键盘代替鼠标时, 注销快捷键
+        /// </summary>
+        private void CheckBox_Click_LeftButton(object sender, RoutedEventArgs e)
+        {
+            var checkbox = (CheckBox)sender;
+            SetCheck(checkbox.Name, checkbox?.IsChecked ?? false);
+            if (!checks["键盘代替左键"])
+            {
+                IntPtr hwnd = new WindowInteropHelper(this).Handle;
+                UnregisterHotKey(hwnd, hotkeyID["按左键"]);
+            }
+        }
+
+        /// <summary>
         /// 移动鼠标到 (x, y)
         /// </summary>
         private void MoveMouseTo(double x, double y)
@@ -654,7 +677,7 @@ namespace D3H
         {
             Rect rect = d3UI.backpackRects[index];
             // 鼠标移动到格子中心
-            MoveMouseTo(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
+            MoveMouseTo(rect.X + rect.Width / 10, rect.Y + rect.Height / 10);
             int r = -1, g = -1, b = -1;
             // 获取边框颜色
             DateTime start = DateTime.Now;
@@ -789,9 +812,14 @@ namespace D3H
             }
 
             bool[] hasItem = new bool[60];
-            double[][] scans = [[0.6, 0.7], [0.35, 0.35], [0.7, 0.25]];
+            Color[] colors = new Color[60]; // 保存格子左下角信息
+            double[][] scans = [[0.6, 0.7], [0.4, 0.4], [0.7, 0.25]];
             for (int index = 0; index < 60; index++)
             {
+                colors[index] = screen.GetPixel(
+                    (int)Math.Round(d3UI.backpackRects[index].X + 0.08 * d3UI.backpackRects[index].Width),
+                    (int)Math.Round(d3UI.backpackRects[index].Y + 0.7 * d3UI.backpackRects[index].Height)
+                    );
                 if (safeZone.Contains(index)) continue; // 跳过安全格
                 foreach (double[] scan in scans)
                 {
@@ -817,22 +845,36 @@ namespace D3H
                 sim.Mouse.LeftButtonClick();
                 if (await ClickDialogBox() && index < 50 && hasItem[index + 10])
                 {
-                    hasItem[index + 10] = false;
-                    foreach (double[] scan in scans)
+                    // 先前格子左下角颜色
+                    Color cPre = colors[index + 10];
+                    // 重新对左下角取色
+                    int r = -1, g = -1, b = -1;
+                    DateTime start = DateTime.Now;
+                    while ((DateTime.Now - start).TotalMilliseconds < 100)
                     {
+                        screen.Dispose();
+                        screen = ScreenShot();
                         Color c = screen.GetPixel(
-                            (int)Math.Round(d3UI.backpackRects[index + 10].X + scan[0] * d3UI.backpackRects[index + 10].Width),
-                            (int)Math.Round(d3UI.backpackRects[index + 10].Y + scan[1] * d3UI.backpackRects[index + 10].Height)
+                            (int)Math.Round(d3UI.backpackRects[index].X + 0.08 * d3UI.backpackRects[index].Width),
+                            (int)Math.Round(d3UI.backpackRects[index].Y + 0.7 * d3UI.backpackRects[index].Height)
                             );
-                        if (c.R < 22 && c.G < 20 && c.B < 15 && c.R > c.B && c.G > c.B) continue;
-                        hasItem[index + 10] = true;
-                        break;
+                        if (r == c.R && g == c.G && b == c.B) break;
+                        r = c.R;
+                        g = c.G;
+                        b = c.B;
+                        await Task.Delay(20);
+                    }
+                    // 下方格子发生变化, 意味着空了
+                    if (r != cPre.R || g != cPre.G || b != cPre.B)
+                    {
+                        hasItem[index + 10] = false;
                     }
                 }
             }
 
             sim.Mouse.RightButtonClick(); // 结束分解
             screen.Dispose();
+            isRunning = false;
         }
 
         /// <summary>
@@ -1012,8 +1054,11 @@ namespace D3H
                     }
                     else if (wParam.ToInt32() == hotkeyID["日常"])
                     {
+                        if (isRunning) return (IntPtr)1;
+                        isRunning = true;
                         if (IsSmithPageOn())
                         {
+                            Console.WriteLine("开始一键分解");
                             _ = Decompose();
                         }
                     }

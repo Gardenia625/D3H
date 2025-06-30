@@ -25,7 +25,7 @@ namespace D3H.Classes
             ["战斗"] = new HotkeyBinding("D1", "Control"),
             ["冷却初始化"] = new HotkeyBinding("F5", "None"),
             ["仅按住技能"] = new HotkeyBinding("D2", "Control"),
-            ["日常"] = new HotkeyBinding("F10", "None"),
+            ["日常"] = new HotkeyBinding("F1", "None"),
             ["按左键"] = new HotkeyBinding("D", "None"),
         };
         public HotkeyBinding[] skillHotkeys { get; set; } =
