@@ -685,7 +685,7 @@ namespace D3H
         {
             Rect rect = d3UI.backpackRects[index];
             // 鼠标移动到格子中心
-            MoveMouseTo(rect.X + rect.Width / 10, rect.Y + rect.Height / 10);
+            MoveMouseTo(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
             int r = -1, g = -1, b = -1;
             // 获取边框颜色
             DateTime start = DateTime.Now;
