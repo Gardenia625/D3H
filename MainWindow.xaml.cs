@@ -790,7 +790,11 @@ namespace D3H
         /// </summary>
         private async Task Decompose()
         {
-            if (!IsSmithPageOn()) return;
+            if (!IsSmithPageOn())
+            {
+                isRunning = false;
+                return;
+            }
             // 切换到分解页面
             MoveMouseTo(d3UI.smithPoints[4][0], d3UI.smithPoints[4][1]);
             sim.Mouse.LeftButtonClick();
