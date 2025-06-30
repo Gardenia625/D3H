@@ -21,6 +21,8 @@ namespace D3H.Classes
 
         public Double[][] smithPoints { get; private set; } = Array.Empty<Double[]>();
 
+        public Double[][] gamblingPoints { get; private set; } = Array.Empty<Double[]>();
+
         public D3UI()
         {
             GetD3WidthAndHeight(); // 获取游戏窗口信息
@@ -28,6 +30,7 @@ namespace D3H.Classes
             GetBackpackRects();    // 生成背包格子 Rects
             GetDialogBoxPoints();  // 计算确认框上两个点
             GetSmithPoints();      // 计算铁匠铺中重要的点
+            GetGamblingPoints();   // 计算血岩界面 logo 上的点
         }
 
         /// <summary>
@@ -160,6 +163,18 @@ namespace D3H.Classes
             smithPoints[10] = [mapY(372), mapY(431)];
             smithPoints[11] = [mapY(471), mapY(431)];
             smithPoints[12] = [mapY(571), mapY(431)];
+        }
+
+        /// <summary>
+        /// 血岩页面的点
+        /// </summary>
+        private void GetGamblingPoints()
+        {
+            gamblingPoints = new double[4][];
+            gamblingPoints[0] = [mapY(356), mapY(107)];
+            gamblingPoints[1] = [mapY(390), mapY(111)];
+            gamblingPoints[2] = [mapY(216), mapY(75)];
+            gamblingPoints[3] = [mapY(165), mapY(104)];
         }
 
         #region Win32 API

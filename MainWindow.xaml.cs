@@ -893,25 +893,6 @@ namespace D3H
             screen.Dispose();
             isRunning = false;
         }
-
-        /// <summary>
-        /// 判断铁匠页面状态 0: 未开启, 1: 开启但不是分解页面, 2: 分解页面
-        /// </summary>
-        private bool IsSmithPageOn()
-        {
-            Bitmap screen = ScreenShot();
-            Color c1 = GetPixel(screen, d3UI.smithPoints[0]);
-            Color c2 = GetPixel(screen, d3UI.smithPoints[1]);
-            Color c3 = GetPixel(screen, d3UI.smithPoints[2]);
-            Color c4 = GetPixel(screen, d3UI.smithPoints[3]);
-            bool ans = c1.B > c1.G && c1.G > c1.R && c1.B > 170 && c1.B - c1.R > 80 // 亮蓝色
-                && c2.R + c2.G > 350 // 白黄高亮
-                && c3.B > c3.G && c3.G > c3.R && c3.B > 110 // 蓝偏亮
-                && c4.R > 50 && c4.G < 15 && c4.B < 15; // 偏红
-            screen.Dispose();
-            return ans;
-        }
-
         #endregion
 
         #region 主要行为
@@ -987,6 +968,41 @@ namespace D3H
             }
         }
 
+        /// <summary>
+        /// 判断铁匠页面是否开启
+        /// </summary>
+        private bool IsSmithPageOn()
+        {
+            Bitmap screen = ScreenShot();
+            Color c1 = GetPixel(screen, d3UI.smithPoints[0]);
+            Color c2 = GetPixel(screen, d3UI.smithPoints[1]);
+            Color c3 = GetPixel(screen, d3UI.smithPoints[2]);
+            Color c4 = GetPixel(screen, d3UI.smithPoints[3]);
+            bool ans = c1.B > c1.G && c1.G > c1.R && c1.B > 170 && c1.B - c1.R > 80 // 亮蓝色
+                && c2.R + c2.G > 350 // 白黄高亮
+                && c3.B > c3.G && c3.G > c3.R && c3.B > 110 // 蓝偏亮
+                && c4.R > 50 && c4.G < 15 && c4.B < 15; // 偏红
+            screen.Dispose();
+            return ans;
+        }
+
+        /// <summary>
+        /// 判断血岩页面是否开启
+        /// </summary>
+        /// <returns></returns>
+        private bool IsGamblingPageOn()
+        {
+            Bitmap screen = ScreenShot();
+            Color c1 = GetPixel(screen, d3UI.gamblingPoints[0]);
+            Color c2 = GetPixel(screen, d3UI.gamblingPoints[1]);
+            Color c3 = GetPixel(screen, d3UI.gamblingPoints[2]);
+            Color c4 = GetPixel(screen, d3UI.gamblingPoints[3]);
+            bool ans = c1.B > c1.R && c1.R > c1.G && c1.B > 130
+                && c2.R + c2.G > 330
+                && c3.R + c3.G + c3.B + c4.R + c4.G + c4.B < 10;
+            screen.Dispose();
+            return ans;
+        }
         private async Task Gambling()
         {
             for (int i = 0; i < 20; i++)
@@ -994,6 +1010,7 @@ namespace D3H
                 sim.Mouse.RightButtonClick();
                 await Task.Delay(20);
             }
+            isRunning = false;
         }
 
 
@@ -1090,8 +1107,12 @@ namespace D3H
                             Console.WriteLine("开始一键分解");
                             _ = Decompose();
                         }
-                        else if (checks["赌博"])
+                        else if (IsGamblingPageOn())
                         {
+                            if (!checks["赌博"]) return (IntPtr)1;
+                            if (isRunning) return (IntPtr)1;
+                            isRunning = true;
+                            Console.WriteLine("开始一键赌博");
                             _ = Gambling();
                         }
                     }
