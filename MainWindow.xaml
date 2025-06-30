@@ -182,6 +182,8 @@
 
                 <CheckBox Content="一键分解" IsChecked="True" Name="一键分解"
                           Click="CheckBox_Click"/>
+                <CheckBox Content="一键血岩赌博" IsChecked="True" Name ="赌博" VerticalAlignment="Center"
+                          Click="CheckBox_Click"/>
                 <CheckBox Content="按快捷键时播放声音" IsChecked="True" Name="开启按键音"
                           Click="CheckBox_Click"/>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
@@ -193,6 +195,7 @@
                          GotFocus="TextBox_GotFocus"
                          LostFocus="TextBox_LostFocus"/>
                 </StackPanel>
+                
                 <Button Content="保存" 
                     Width="40" 
                     Height="20" 

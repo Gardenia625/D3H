@@ -42,7 +42,8 @@ namespace D3H.Classes
         {
             { "开启按键音", false },
             { "一键分解", true },
-            { "键盘代替左键", true }
+            { "键盘代替左键", true },
+            { "赌博", true }
         };
 
         public string safeZone { get; set; } = "[]";

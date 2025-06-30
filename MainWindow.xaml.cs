@@ -790,11 +790,6 @@ namespace D3H
         /// </summary>
         private async Task Decompose()
         {
-            if (!IsSmithPageOn())
-            {
-                isRunning = false;
-                return;
-            }
             // 切换到分解页面
             MoveMouseTo(d3UI.smithPoints[4][0], d3UI.smithPoints[4][1]);
             sim.Mouse.LeftButtonClick();
@@ -992,6 +987,17 @@ namespace D3H
             }
         }
 
+        private async Task Gambling()
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                sim.Mouse.RightButtonClick();
+                await Task.Delay(20);
+            }
+        }
+
+
+
         #endregion
 
 
@@ -1076,12 +1082,17 @@ namespace D3H
                     }
                     else if (wParam.ToInt32() == hotkeyID["日常"])
                     {
-                        if (isRunning) return (IntPtr)1;
-                        isRunning = true;
                         if (IsSmithPageOn())
                         {
+                            if (!checks["一键分解"]) return (IntPtr)1;
+                            if (isRunning) return (IntPtr)1;
+                            isRunning = true;
                             Console.WriteLine("开始一键分解");
                             _ = Decompose();
+                        }
+                        else if (checks["赌博"])
+                        {
+                            _ = Gambling();
                         }
                     }
                     else if (wParam.ToInt32() == hotkeyID["按左键"])
