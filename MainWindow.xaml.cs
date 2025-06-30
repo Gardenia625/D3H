@@ -38,7 +38,8 @@ namespace D3H
             { "日常", 100 },
             { "按左键", 101 }
         };
-        private Dictionary<string, HotkeyBinding> hotkeys = new();
+        private Dictionary<string, HotkeyBinding> hotkeysJSON = new();
+        private Dictionary<string, (Key key, ModifierKeys mod)> hotkeys = new();
         // 战斗区
         private bool battle = false; // 是否在战斗
         private static readonly Dictionary<string, int> skillIndex = new()
@@ -196,7 +197,7 @@ namespace D3H
             isRecordingHotkey = true;
             foreach (var item in _settings.hotkeys)
             {
-                hotkeys[item.Key] = item.Value;
+                hotkeysJSON[item.Key] = item.Value;
                 string keyString = item.Value.key;
                 string modString = item.Value.mod;
                 Enum.TryParse(keyString, ignoreCase: true, out Key key);
@@ -256,7 +257,7 @@ namespace D3H
         private void SaveSettings()
         {
             // 保存系统快捷键
-            foreach (var item in hotkeys)
+            foreach (var item in hotkeysJSON)
             {
                 _settings.hotkeys[item.Key] = item.Value;
             }
@@ -362,7 +363,8 @@ namespace D3H
                 IntPtr hwnd = new WindowInteropHelper(this).Handle;
                 UnregisterHotKey(hwnd, hotkeyID[name]);
                 RegisterHotKey(hwnd, hotkeyID[name], fsModifiers, vk);
-                hotkeys[name] = new HotkeyBinding(key.ToString(), modifiers.ToString());
+                hotkeysJSON[name] = new HotkeyBinding(key.ToString(), modifiers.ToString());
+                hotkeys[name] = (key, modifiers);
             }
             else
             {
@@ -635,6 +637,12 @@ namespace D3H
             {
                 IntPtr hwnd = new WindowInteropHelper(this).Handle;
                 UnregisterHotKey(hwnd, hotkeyID["按左键"]);
+            }
+            else
+            {
+                currentRecordingTextBox = (TextBox)FindName("按左键");
+                SetHotKey(hotkeys["按左键"].key, hotkeys["按左键"].mod);
+                currentRecordingTextBox = null;
             }
         }
 
