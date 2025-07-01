@@ -2,16 +2,13 @@
 using System;
 using System.Drawing; // Bitmap
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
 using System.Text.Json; // JSON 序列化/反序列化
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Xml.Linq;
 
 //using System.Windows.Media;
 using WindowsInput; // 鼠标键盘输入

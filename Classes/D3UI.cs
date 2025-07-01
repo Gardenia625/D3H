@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;  // 获取窗口大小
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using static D3H.Classes.D3UI;
 
 namespace D3H.Classes
 {
