@@ -2,6 +2,7 @@
 using System;
 using System.Drawing; // Bitmap
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text.Json; // JSON 序列化/反序列化
@@ -38,7 +39,6 @@ namespace D3H
             { "日常", 100 },
             { "按左键", 101 }
         };
-        private Dictionary<string, HotkeyBinding> hotkeysJSON = new();
         private Dictionary<string, (Key key, ModifierKeys mod)> hotkeys = new();
         // 战斗区
         private bool battle = false; // 是否在战斗
@@ -173,7 +173,6 @@ namespace D3H
             }
             catch
             {
-                Console.WriteLine("???");
                 return new AppSettings();
             }
         }
@@ -197,11 +196,11 @@ namespace D3H
             isRecordingHotkey = true;
             foreach (var item in _settings.hotkeys)
             {
-                hotkeysJSON[item.Key] = item.Value;
                 string keyString = item.Value.key;
                 string modString = item.Value.mod;
                 Enum.TryParse(keyString, ignoreCase: true, out Key key);
                 Enum.TryParse(modString, ignoreCase: true, out ModifierKeys mod);
+                hotkeys[item.Key] = (key, mod);
                 currentRecordingTextBox = (TextBox)FindName(item.Key);
                 SetHotKey(key, mod);
             }
@@ -257,9 +256,11 @@ namespace D3H
         private void SaveSettings()
         {
             // 保存系统快捷键
-            foreach (var item in hotkeysJSON)
+            foreach (var item in hotkeys)
             {
-                _settings.hotkeys[item.Key] = item.Value;
+                string key = item.Value.key.ToString();
+                string mod = item.Value.mod.ToString();
+                _settings.hotkeys[item.Key] = new HotkeyBinding(key, mod);
             }
             // 保存技能快捷键
             for (int index = 0; index < 4; index++)
@@ -363,7 +364,6 @@ namespace D3H
                 IntPtr hwnd = new WindowInteropHelper(this).Handle;
                 UnregisterHotKey(hwnd, hotkeyID[name]);
                 RegisterHotKey(hwnd, hotkeyID[name], fsModifiers, vk);
-                hotkeysJSON[name] = new HotkeyBinding(key.ToString(), modifiers.ToString());
                 hotkeys[name] = (key, modifiers);
             }
             else
