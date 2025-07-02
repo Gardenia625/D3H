@@ -47,7 +47,7 @@
 
                     <!-- 技能一 -->
                     <TextBlock Text="技能一：" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox Text="Q" Grid.Row="1" Grid.Column="1" Name="技能1" VerticalAlignment="Center"
+                    <TextBox Text="Q" Grid.Row="1" Grid.Column="1" Name="技能1" 
                              ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                              PreviewKeyDown="TextBox_PreviewKeyDown"
                              GotFocus="TextBox_GotFocus" 
@@ -59,13 +59,13 @@
                         <ComboBoxItem Content="好了就按"/>
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
-                    <TextBox Text="0" Grid.Row="1" Grid.Column="3" Name="技能1间隔" VerticalAlignment="Center"
+                    <TextBox Text="0" Grid.Row="1" Grid.Column="3" Name="技能1间隔"
                              IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 技能二 -->
                     <TextBlock Text="技能二：" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox Text="W" Grid.Row="2" Grid.Column="1" Name="技能2" VerticalAlignment="Center"
+                    <TextBox Text="W" Grid.Row="2" Grid.Column="1" Name="技能2"
                              ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                              PreviewKeyDown="TextBox_PreviewKeyDown"
                              GotFocus="TextBox_GotFocus" 
@@ -77,13 +77,13 @@
                         <ComboBoxItem Content="好了就按"/>
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
-                    <TextBox Text="0" Grid.Row="2" Grid.Column="3" Name="技能2间隔" VerticalAlignment="Center"
+                    <TextBox Text="0" Grid.Row="2" Grid.Column="3" Name="技能2间隔"
                              IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 技能三 -->
                     <TextBlock Text="技能三：" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox Text="E" Grid.Row="3" Grid.Column="1" Name="技能3" VerticalAlignment="Center"
+                    <TextBox Text="E" Grid.Row="3" Grid.Column="1" Name="技能3"
                              ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                              PreviewKeyDown="TextBox_PreviewKeyDown"
                              GotFocus="TextBox_GotFocus"
@@ -95,13 +95,13 @@
                         <ComboBoxItem Content="好了就按"/>
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
-                    <TextBox Text="0" Grid.Row="3" Grid.Column="3" Name="技能3间隔" VerticalAlignment="Center"
+                    <TextBox Text="0" Grid.Row="3" Grid.Column="3" Name="技能3间隔"
                              IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 技能四 -->
                     <TextBlock Text="技能四：" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox Text="R" Grid.Row="4" Grid.Column="1" Name="技能4" VerticalAlignment="Center"
+                    <TextBox Text="R" Grid.Row="4" Grid.Column="1" Name="技能4"
                              ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                              PreviewKeyDown="TextBox_PreviewKeyDown"
                              GotFocus="TextBox_GotFocus"
@@ -113,13 +113,13 @@
                         <ComboBoxItem Content="好了就按"/>
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
-                    <TextBox Text="0" Grid.Row="4" Grid.Column="3" Name="技能4间隔" VerticalAlignment="Center"
+                    <TextBox Text="0" Grid.Row="4" Grid.Column="3" Name="技能4间隔"
                              IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 左键技能 -->
                     <TextBlock Text="左键技能：" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox Text="鼠标左键" IsEnabled="False" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center"/>
+                    <TextBox Text="鼠标左键" IsEnabled="False" Grid.Row="5" Grid.Column="1"/>
                     <ComboBox Grid.Row="5" Grid.Column="2" Name="左键技能模式"
                               SelectionChanged="ComboBox_SelectionChanged">
                         <ComboBoxItem Content="无" IsSelected="True"/>
@@ -127,13 +127,13 @@
                         <ComboBoxItem Content="好了就按"/>
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
-                    <TextBox Text="0" Grid.Row="5" Grid.Column="3" Name="左键技能间隔" VerticalAlignment="Center"
+                    <TextBox Text="0" Grid.Row="5" Grid.Column="3" Name="左键技能间隔"
                              IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 
                     <!-- 右键技能 -->
                     <TextBlock Text="右键技能：" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox Text="鼠标右键" IsEnabled="False" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center"/>
+                    <TextBox Text="鼠标右键" IsEnabled="False" Grid.Row="6" Grid.Column="1"/>
                     <ComboBox Grid.Row="6" Grid.Column="2" Name="右键技能模式"
                               SelectionChanged="ComboBox_SelectionChanged">
                         <ComboBoxItem Content="无" IsSelected="True"/>
@@ -141,7 +141,7 @@
                         <ComboBoxItem Content="好了就按"/>
                         <ComboBoxItem Content="固定间隔"/>
                     </ComboBox>
-                    <TextBox Text="0" Grid.Row="6" Grid.Column="3" Name="右键技能间隔" VerticalAlignment="Center"
+                    <TextBox Text="0" Grid.Row="6" Grid.Column="3" Name="右键技能间隔"
                              IsEnabled="False"
                              TextChanged="IntTextBox_TextChanged"/>
 

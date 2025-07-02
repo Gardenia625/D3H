@@ -1,5 +1,6 @@
 ﻿using D3H.Classes;
 using System;
+using System.Diagnostics;
 using System.Drawing; // Bitmap
 using System.IO;
 using System.Runtime.InteropServices;
@@ -9,8 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-
-//using System.Windows.Media;
+using System.Windows.Navigation;
 using WindowsInput; // 鼠标键盘输入
 using WindowsInput.Native; // VirtualKeyCode
 
@@ -1137,6 +1137,19 @@ namespace D3H
                 UnregisterHotKey(hwnd, id);
             }
             SaveSettings();
+        }
+
+        /// <summary>
+        /// 点击超链接
+        /// </summary>
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = e.Uri.AbsoluteUri,
+                UseShellExecute = true
+            });
+            e.Handled = true;
         }
     }
 }
