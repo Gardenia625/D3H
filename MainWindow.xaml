@@ -170,40 +170,54 @@
 
         <!-- 右侧: 日常区 -->
         <GroupBox Header="日常功能" Grid.Column="1" Margin="5">
-            <StackPanel Margin="10">
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="10">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                     <TextBlock Text="日常宏快捷键：" Foreground="Red"  VerticalAlignment="Center"/>
                     <TextBox Width="75" Text="F1" Name="日常"
                              ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                              PreviewKeyDown="TextBox_PreviewKeyDown"
                              GotFocus="TextBox_GotFocus"
                              LostFocus="TextBox_LostFocus"/>
+                    </StackPanel>
+
+                    <CheckBox Content="一键分解" IsChecked="True" Name="一键分解"
+                              Click="CheckBox_Click"/>
+                    <CheckBox Content="一键血岩赌博" IsChecked="True" Name ="赌博" VerticalAlignment="Center"
+                              Click="CheckBox_Click"/>
+                    <CheckBox Content="按快捷键时播放声音" IsChecked="True" Name="开启按键音"
+                              Click="CheckBox_Click"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                        <CheckBox Content="键盘代替左键  " IsChecked="True" Name ="键盘代替左键" VerticalAlignment="Center"
+                                  Click="CheckBox_Click_LeftButton"/>
+                        <TextBox Width="50" Text="D" Name="按左键" VerticalAlignment="Center"
+                             ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                             PreviewKeyDown="TextBox_PreviewKeyDown"
+                             GotFocus="TextBox_GotFocus"
+                             LostFocus="TextBox_LostFocus"/>
+                    </StackPanel>
+                
+                    <Button Content="保存"
+                        Width="40" 
+                        Height="20" 
+                        Margin="0,0,10,10"
+                        HorizontalAlignment="Right" 
+                        VerticalAlignment="Bottom"
+                        Click="SaveButton_Click"/>
                 </StackPanel>
 
-                <CheckBox Content="一键分解" IsChecked="True" Name="一键分解"
-                          Click="CheckBox_Click"/>
-                <CheckBox Content="一键血岩赌博" IsChecked="True" Name ="赌博" VerticalAlignment="Center"
-                          Click="CheckBox_Click"/>
-                <CheckBox Content="按快捷键时播放声音" IsChecked="True" Name="开启按键音"
-                          Click="CheckBox_Click"/>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <CheckBox Content="键盘代替左键  " IsChecked="True" Name ="键盘代替左键" VerticalAlignment="Center"
-                              Click="CheckBox_Click_LeftButton"/>
-                    <TextBox Width="50" Text="D" Name="按左键" VerticalAlignment="Center"
-                         ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
-                         PreviewKeyDown="TextBox_PreviewKeyDown"
-                         GotFocus="TextBox_GotFocus"
-                         LostFocus="TextBox_LostFocus"/>
-                </StackPanel>
-                
-                <Button Content="保存" 
-                    Width="40" 
-                    Height="20" 
-                    Margin="0,0,10,10"
-                    HorizontalAlignment="Right" 
-                    VerticalAlignment="Bottom"
-                    Click="SaveButton_Click"/>
-            </StackPanel>
+                <TextBlock Grid.Row="1" HorizontalAlignment="Right" Margin="10" VerticalAlignment="Bottom">
+                    <Run Text="项目开源地址:" />
+                    <Hyperlink NavigateUri="https://github.com/Gardenia625/D3H" RequestNavigate="Hyperlink_RequestNavigate">
+                        GitHub
+                    </Hyperlink>
+                </TextBlock>
+            </Grid>
         </GroupBox>
     </Grid>
 </Window>
